@@ -1,0 +1,27 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION = 'us-east-1'
+        INSTANCE_ID = 'i-0abcd1234efgh5678'  // Replace with your EC2 instance ID
+    }
+
+    stages {
+        stage('Check Alarm Status') {
+            steps {
+                script {
+                    def alarmStatus = sh(script: """
+                      aws cloudwatch describe-alarms --alarm-names 'High-CPU-Alarm' \
+                      --region $AWS_REGION --query 'MetricAlarms[0].StateValue' --output text
+                    """, returnStdout: true).trim()
+
+                    if (alarmStatus == 'ALARM') {
+                        echo "Alarm is active. Proceeding with remediation."
+                    } else {
+                        error("No active alarm. Exiting...")
+                    }
+                }
+            }
+        }
+    }
+}
