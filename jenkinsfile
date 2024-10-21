@@ -46,4 +46,3 @@ pipeline {
             echo 'Failed to restart the instance.'
         }
     }
-}
