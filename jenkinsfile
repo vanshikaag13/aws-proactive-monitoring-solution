@@ -24,4 +24,26 @@ pipeline {
             }
         }
     }
+     stage('Restart EC2 Instance') {
+            steps {
+                echo 'Restarting EC2 instance...'
+                sh """
+                  aws ssm send-command \
+                    --document-name 'AWS-RunShellScript' \
+                    --targets '[{"Key":"instanceIds","Values":["$INSTANCE_ID"]}]' \
+                    --comment 'Restarting instance via Jenkins' \
+                    --parameters '{"commands":["sudo reboot"]}' \
+                    --region $AWS_REGION
+                """
+            }
+        }
+
+    post {
+        success {
+            echo 'Instance restarted successfully.'
+        }
+        failure {
+            echo 'Failed to restart the instance.'
+        }
+    }
 }
